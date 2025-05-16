@@ -37,6 +37,7 @@ def get_schemas() -> str:
     Retrieve a list of available schemas (users) in the database.
 
     Returns:
+
         str: Markdown table of schemas
     """
     query = "SELECT USERNAME FROM ALL_USERS ORDER BY USERNAME"
