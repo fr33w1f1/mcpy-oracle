@@ -34,7 +34,7 @@ Create `.env` with these 3:
 ```
 USERNAME=
 PASSWORD=
-DNS=HOST:PORT/SERVICENAME
+DSN=HOST:PORT/SERVICENAME
 ```
 
 (Optional) Default host `0.0.0.0:8000`. If you want to change, add below variable to `.env`

@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     password: str
     dsn: str
 
+    fastmcp_port: Optional[int] = None
+    fastmcp_host: Optional[str] = None
+
     class Config:
         env_file = ".env"
 
