@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import oracledb
 from tabulate import tabulate
 
-from config.config import settings
+from config import settings
 
 mcp = FastMCP("oracle_mcp_server")
 
