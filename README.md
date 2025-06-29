@@ -78,4 +78,6 @@ def get_table_columns(schema: str, table_name: str) -> str
 ## MCP Inspector to test your tools
 Install npx
 
-Download
+```bash
+npx @modelcontextprotocol/inspector uv --directory "D:\sourcecode\mcpy_server" run -m mcpy_server.app
+```
