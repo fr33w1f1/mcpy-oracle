@@ -1,6 +1,8 @@
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 import oracledb
 from tabulate import tabulate
+import random
+import string
 
 from config import settings
 
@@ -76,7 +78,7 @@ def get_tables(schema: str) -> str:
         return f"Error: {str(e)}"
 
 @mcp.tool(name='get_table_columns', description='Retrieve column metadata for given schema and table')
-def get_table_columns(schema: str, table_name: str) -> str:
+def get_table_metadata(schema: str, table_name: str) -> str:
     """
     Retrieve column metadata for a given table.
 
@@ -102,6 +104,57 @@ def get_table_columns(schema: str, table_name: str) -> str:
                 return tabulate(rows, headers=headers, tablefmt="github")
     except Exception as e:
         return f"Error: {str(e)}"
+    
+@mcp.tool(name='Validate query and get explain with cost', description='Validates an SQL query and returns its execution plan with cost.')
+def validate_and_estimate_cost(query: str) -> str:
+    """
+    Validates an SQL query, retrieves its execution plan, and prints the estimated cost.
+
+    A warning is issued if the cost exceeds a predefined threshold.
+
+    Args:
+        query (str): The SQL query to analyze.
+
+    Returns:
+        str: A markdown-formatted table of the execution plan, or an error message.
+    """
+    # Generate a unique statement ID for this explain plan
+    statement_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+    try:
+        with oracledb.connect(user=settings.username, password=settings.password, dsn=settings.dsn) as connection:
+            with connection.cursor() as cursor:
+                # Explain the plan for the given query with a specific statement ID
+                cursor.execute(f"EXPLAIN PLAN SET STATEMENT_ID = '{statement_id}' FOR {query}")
+
+                # Retrieve the formatted plan using the statement ID
+                cursor.execute(f"SELECT PLAN_TABLE_OUTPUT FROM TABLE(DBMS_XPLAN.DISPLAY(NULL, '{statement_id}', 'TYPICAL'))")
+                plan_output = cursor.fetchall()
+                
+                # Now, let's get the cost from the plan_table for our statement_id
+                cursor.execute("""
+                    SELECT COST
+                    FROM PLAN_TABLE
+                    WHERE STATEMENT_ID = :statement_id AND ID = 0
+                """, {'statement_id': statement_id})
+
+                cost_result = cursor.fetchone()
+                cost = 0
+                if cost_result and cost_result[0] is not None:
+                    cost = int(cost_result[0])
+
+                print(f"Estimated cost for the query: {cost}")
+
+                if cost > 200000:
+                    print("\nWarning: The estimated cost of this query is very high, which may impact database performance.\n")
+
+                return tabulate(plan_output, headers=["Execution Plan"], tablefmt="github")
+    except oracledb.DatabaseError as e:
+        # If the query is invalid during the EXPLAIN PLAN, an error will be raised.
+        return f"Error: Invalid SQL query. {str(e)}"
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}"
+
         
 if __name__ == "__main__":
-    mcp.run(transport='sse')
+    mcp.run()
