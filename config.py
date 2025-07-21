@@ -1,5 +1,5 @@
-from pydantic_settings import BaseSettings
-from typing import List, Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import List, Optional, Literal
 
 class Settings(BaseSettings):
     whitelist_tables: Optional[List[str]] = None
@@ -9,11 +9,8 @@ class Settings(BaseSettings):
     password: str
     dsn: str
 
-    fastmcp_port: Optional[int] = None
-    fastmcp_host: Optional[str] = None
+    transport: Optional[Literal['sse', 'stdio', 'streamable-http']] = 'stdio'
 
-    class Config:
-        env_file = ".env"
-
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()

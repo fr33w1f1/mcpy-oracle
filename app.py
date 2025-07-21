@@ -77,7 +77,7 @@ def get_tables(schema: str) -> str:
     except Exception as e:
         return f"Error: {str(e)}"
 
-@mcp.tool(name='get_table_columns', description='Retrieve column metadata for given schema and table')
+@mcp.tool(name='get_table_metadata', description='Retrieve column metadata for given schema and table')
 def get_table_metadata(schema: str, table_name: str) -> str:
     """
     Retrieve column metadata for a given table.
@@ -91,9 +91,36 @@ def get_table_metadata(schema: str, table_name: str) -> str:
     """
     schema, table_name = schema.upper(), table_name.upper()
     query = """
-        SELECT COLUMN_NAME, DATA_TYPE, NUM_DISTINCT, NUM_NULLS, NULLABLE
-        FROM ALL_TAB_COLUMNS 
-        WHERE OWNER = :schema AND TABLE_NAME = :table_name 
+        SELECT 
+            col.COLUMN_NAME,
+            col.DATA_TYPE,
+            col.DATA_LENGTH,
+            col.NULLABLE,
+            col.NUM_DISTINCT,
+            col.NUM_NULLS,
+            CASE 
+                WHEN idx.COLUMN_NAME IS NOT NULL THEN 'YES' ELSE 'NO'
+            END AS IS_INDEXED,
+            CASE 
+                WHEN part.COLUMN_NAME IS NOT NULL THEN 'YES' ELSE 'NO'
+            END AS IS_PARTITION_KEY
+        FROM 
+            ALL_TAB_COLUMNS col
+        LEFT JOIN 
+            ALL_IND_COLUMNS idx
+            ON col.OWNER = idx.TABLE_OWNER
+            AND col.TABLE_NAME = idx.TABLE_NAME
+            AND col.COLUMN_NAME = idx.COLUMN_NAME
+        LEFT JOIN 
+            ALL_PART_KEY_COLUMNS part
+            ON col.OWNER = part.OWNER
+            AND col.TABLE_NAME = part.NAME
+            AND col.COLUMN_NAME = part.COLUMN_NAME
+        WHERE 
+            col.OWNER = :schema
+            AND col.TABLE_NAME = :table_name
+        ORDER BY 
+            col.COLUMN_ID
     """
     try:
         with oracledb.connect(user=settings.username, password=settings.password, dsn=settings.dsn) as connection:
@@ -157,4 +184,4 @@ def validate_and_estimate_cost(query: str) -> str:
 
         
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport=settings.transport)
