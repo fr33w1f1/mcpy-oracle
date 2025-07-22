@@ -3,8 +3,17 @@ import oracledb
 from tabulate import tabulate
 import random
 import string
+import logging
 
 from config import settings
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="[{asctime}] {levelname:<8} {message}",
+    datefmt="%m/%d/%y %H:%M:%S",  # MM/DD/YY
+    style="{"
+    )
 
 mcp = FastMCP("oracle_mcp_server")
 
@@ -170,10 +179,8 @@ def validate_and_estimate_cost(query: str) -> str:
                 if cost_result and cost_result[0] is not None:
                     cost = int(cost_result[0])
 
-                print(f"Estimated cost for the query: {cost}")
-
-                if cost > 200000:
-                    print("\nWarning: The estimated cost of this query is very high, which may impact database performance.\n")
+                if cost > settings.cost_threshold:
+                    logger.warning(f"The estimated cost of this query is {cost}, which may impact database performance.")
 
                 return tabulate(plan_output, headers=["Execution Plan"], tablefmt="github")
     except oracledb.DatabaseError as e:
@@ -184,4 +191,4 @@ def validate_and_estimate_cost(query: str) -> str:
 
         
 if __name__ == "__main__":
-    mcp.run(transport=settings.transport)
+    mcp.run()
