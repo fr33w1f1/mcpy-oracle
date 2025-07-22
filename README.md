@@ -37,10 +37,14 @@ PASSWORD=
 DSN=HOST:PORT/SERVICENAME
 ```
 
-(Optional) Default transport is 'stdio'. If you want to change:
-```diff
-- mcp.run()
-+ mcp.run(transport='sse', host='0.0.0.0', port=8000)
+(Optional) If you want to change the transport/host/port:
+```python
+#sse
+mcp.run(transport='sse', host='0.0.0.0', port=8000)
+#STDIO is the default transport, so you don’t need to specify it when calling run()
+mcp.run(transport='stdio')
+#http-streamable
+mcp.run(transport='streamable-http', host='0.0.0.0', port=8000)
 ```
 
 Start MCP server
@@ -71,7 +75,7 @@ def get_table_columns(schema: str, table_name: str) -> str
     """
     Retrieve column metadata for a given table.
     """
-    
+
 def validate_and_estimate_cost(query: str) -> str
     """
     Validates an SQL query, retrieves its execution plan, and prints the estimated cost.
