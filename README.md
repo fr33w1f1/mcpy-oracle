@@ -8,7 +8,19 @@ FastAPI with different syntax
 
 ## 🚀 How to use
 Just open `app.py` and copy the code you need. Or:
+
 ### 🖥️ Window
+Install `uv` and packages:
+```bash
+.\install.bat
+```
+Run MCP Server:
+```bash
+.\start.bat
+```
+To stop, press `Ctrl + C` and `Y` if required
+
+Or install manually: 
 
 Clone this repo to your machine:
 ```bash
@@ -37,10 +49,14 @@ PASSWORD=
 DSN=HOST:PORT/SERVICENAME
 ```
 
-(Optional) Default host `0.0.0.0:8000`. If you want to change, add below variable to `.env`
-```
-FASTMCP_PORT=8001
-FASTMCP_HOST=0.0.0.0
+(Optional) If you want to change the transport/host/port:
+```python
+#sse
+mcp.run(transport='sse', host='0.0.0.0', port=8000)
+#STDIO is the default transport, so you don’t need to specify it when calling run()
+mcp.run(transport='stdio')
+#http-streamable
+mcp.run(transport='streamable-http', host='0.0.0.0', port=8000)
 ```
 
 Start MCP server
@@ -70,6 +86,11 @@ def get_tables(schema: str) -> str
 def get_table_columns(schema: str, table_name: str) -> str
     """
     Retrieve column metadata for a given table.
+    """
+
+def validate_and_estimate_cost(query: str) -> str
+    """
+    Validates an SQL query, retrieves its execution plan, and prints the estimated cost.
     """
 ```
 
