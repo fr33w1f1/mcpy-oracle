@@ -8,7 +8,19 @@ FastAPI with different syntax
 
 ## 🚀 How to use
 Just open `app.py` and copy the code you need. Or:
+
 ### 🖥️ Window
+Install `uv` and packages:
+```bash
+.\install.bat
+```
+Run MCP Server:
+```bash
+.\start.bat
+```
+To stop, press `Ctrl + C` and `Y` if required
+
+Or install manually: 
 
 Clone this repo to your machine:
 ```bash
